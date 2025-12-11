@@ -1,4 +1,4 @@
-package src; // <--- OBRIGATÓRIO
+package src; 
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,12 +9,13 @@ import javax.imageio.ImageIO;
 
 public class JanelaDoJogo extends JFrame {
 
+    // --- LISTA DE PAÍSES (Seus arquivos de imagem devem ter ESSES nomes) ---
     private final String[] nomesPaises = {
         "Brasil", "EUA", "França", "Japão", "Austrália",
         "Alemanha", "Itália", "Canadá", "Argentina", "Espanha",
         "Reino Unido", "China", "México", "Portugal", "Rússia",
-        "África do Sul", "Egito", "Índia", "Coreia do Sul", "Suíça",
-        "Suécia", "Holanda", "Chile", "Grécia", "Turquia"
+        "África do Sul", "Egito", "Índia", "Arábia Saudita", "Tailandia",
+        "Uruguai", "Holanda", "Bélgica", "Grécia", "Turquia"
     };
 
     private int vidasCachorro = 3;
@@ -23,7 +24,6 @@ public class JanelaDoJogo extends JFrame {
     private boolean faseSetup = true;
     private int itensColocados = 0; 
     
-    // CORRIGIDO: Agora usa "Pais" em vez de "Comodo"
     private ArrayList<Pais> mapaCachorro;
     private ArrayList<Pais> mapaGato;
     
@@ -31,6 +31,7 @@ public class JanelaDoJogo extends JFrame {
     private JLabel labelStatus;
     private JLabel labelVidas;
 
+    // Ícones internos
     private ImageIcon iconPeixePodre;
     private ImageIcon iconOsso; 
 
@@ -42,6 +43,7 @@ public class JanelaDoJogo extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
+        // Carrega ícones de ação
         iconPeixePodre = gerarIconePeixeInternal();
         iconOsso = tentarCarregarOuGerarOsso("osso.png");
 
@@ -49,17 +51,25 @@ public class JanelaDoJogo extends JFrame {
         setVisible(true);
     }
 
+    // --- A MÁGICA DAS IMAGENS ACONTECE AQUI ---
     private ImageIcon carregarImagemPais(String nomePais) {
+        // O código tenta achar .png, .jpg ou .jpeg
         String[] extensoes = {".png", ".jpg", ".jpeg"};
+        
         for (String ext : extensoes) {
-            File arquivo = new File("src/" + nomePais + ext); // Tentei ajustar para ler da pasta src se as imagens estiverem lá
+            // Tenta achar na pasta src (onde ficam os códigos)
+            File arquivo = new File("src/" + nomePais + ext); 
+            
+            // Se não achar na src, tenta na pasta raiz do projeto
             if (!arquivo.exists()) {
-                arquivo = new File(nomePais + ext); // Tenta na raiz também
+                arquivo = new File(nomePais + ext); 
             }
             
+            // Se achou o arquivo, carrega e redimensiona
             if (arquivo.exists()) {
                 try {
                     BufferedImage img = ImageIO.read(arquivo);
+                    // Redimensiona para ficar bonito no quadrado (140 de largura x 90 de altura)
                     Image imgRedimensionada = img.getScaledInstance(140, 90, Image.SCALE_SMOOTH);
                     return new ImageIcon(imgRedimensionada);
                 } catch (Exception e) {
@@ -67,12 +77,14 @@ public class JanelaDoJogo extends JFrame {
                 }
             }
         }
-        return null;
+        return null; // Se não achar nada, retorna nulo (e o código usa texto)
     }
 
     private ImageIcon tentarCarregarOuGerarOsso(String nomeArquivo) {
         try {
-            File arquivo = new File(nomeArquivo);
+            File arquivo = new File("src/" + nomeArquivo);
+            if (!arquivo.exists()) arquivo = new File(nomeArquivo);
+
             if (arquivo.exists()) {
                 BufferedImage img = ImageIO.read(arquivo);
                 Image imgRedimensionada = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
@@ -82,6 +94,7 @@ public class JanelaDoJogo extends JFrame {
         return gerarIconeOssoInternal(); 
     }
 
+    // --- Ícones de desenho (caso não tenha imagem de osso/peixe) ---
     private ImageIcon gerarIconePeixeInternal() {
         BufferedImage img = new BufferedImage(60, 60, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = img.createGraphics();
@@ -138,7 +151,6 @@ public class JanelaDoJogo extends JFrame {
         iniciarFaseSetup("Cachorro");
     }
 
-    // CORRIGIDO: Retorna ArrayList<Pais>
     private ArrayList<Pais> criarMapa() {
         ArrayList<Pais> mapa = new ArrayList<>();
         for (String nome : nomesPaises) {
@@ -147,37 +159,37 @@ public class JanelaDoJogo extends JFrame {
         return mapa;
     }
 
-    // CORRIGIDO: Recebe ArrayList<Pais>
     private void atualizarTabuleiro(ArrayList<Pais> mapaAlvo, boolean modoEspiao) {
         painelTabuleiro.removeAll();
         
-        for (Pais c : mapaAlvo) {
+        for (Pais p : mapaAlvo) {
             JButton btn = new JButton();
             btn.setFocusPainted(false);
             btn.setHorizontalTextPosition(SwingConstants.CENTER);
             btn.setVerticalTextPosition(SwingConstants.BOTTOM);
             btn.setFont(new Font("Arial", Font.BOLD, 10));
             
-            c.botao = btn;
+            p.botao = btn;
 
-            ImageIcon imagemPais = carregarImagemPais(c.nome);
+            // Tenta carregar imagem do país
+            ImageIcon imagemPais = carregarImagemPais(p.nome);
 
             if (modoEspiao) {
-                if (c.conteudo != Conteudo.VAZIO) {
-                    definirEstiloRevelado(btn, c.conteudo, c.nome);
+                if (p.conteudo != Conteudo.VAZIO) {
+                    definirEstiloRevelado(btn, p.conteudo, p.nome);
                 } else {
-                    configurarBotaoNaoRevelado(btn, c.nome, imagemPais);
+                    configurarBotaoNaoRevelado(btn, p.nome, imagemPais);
                 }
             } else {
-                if (c.revelado) {
+                if (p.revelado) {
                     btn.setEnabled(false);
-                    definirEstiloRevelado(btn, c.conteudo, c.nome);
+                    definirEstiloRevelado(btn, p.conteudo, p.nome);
                 } else {
-                    configurarBotaoNaoRevelado(btn, c.nome, imagemPais);
+                    configurarBotaoNaoRevelado(btn, p.nome, imagemPais);
                 }
             }
             
-            btn.addActionListener(e -> processarClique(c));
+            btn.addActionListener(e -> processarClique(p));
             painelTabuleiro.add(btn);
         }
         painelTabuleiro.revalidate();
@@ -190,19 +202,20 @@ public class JanelaDoJogo extends JFrame {
             btn.setText(""); 
             btn.setBackground(Color.WHITE);
         } else {
+            // Fallback se não tiver imagem: mostra texto
             btn.setIcon(null);
             btn.setText("<html><center>" + nome + "</center></html>");
             btn.setBackground(new Color(176, 224, 230));
         }
     }
 
-    private void definirEstiloRevelado(JButton btn, Conteudo conteudo, String nomeComodo) {
+    private void definirEstiloRevelado(JButton btn, Conteudo conteudo, String nomePais) {
         btn.setIcon(null); 
         switch (conteudo) {
             case ARMADILHA: 
                 btn.setIcon(iconPeixePodre);
                 btn.setBackground(new Color(200, 100, 100)); 
-                btn.setToolTipText("Armadilha em " + nomeComodo);
+                btn.setToolTipText("Armadilha em " + nomePais);
                 break;
             case DONO: 
                 btn.setText("DONO");
@@ -212,7 +225,7 @@ public class JanelaDoJogo extends JFrame {
             case PREMIO: 
                 btn.setIcon(iconOsso);
                 btn.setBackground(new Color(255, 215, 0)); 
-                btn.setToolTipText("Prêmio em " + nomeComodo);
+                btn.setToolTipText("Prêmio em " + nomePais);
                 break;
             default: 
                 btn.setText("X"); 
@@ -221,27 +234,25 @@ public class JanelaDoJogo extends JFrame {
         }
     }
 
-    // CORRIGIDO: Recebe Pais c
-    private void processarClique(Pais c) {
+    private void processarClique(Pais p) {
         if (faseSetup) {
-            logicaSetup(c);
+            logicaSetup(p);
         } else {
-            logicaAtaque(c);
+            logicaAtaque(p);
         }
     }
 
-    // CORRIGIDO: Recebe Pais c
-    private void logicaSetup(Pais c) {
-        if (c.conteudo != Conteudo.VAZIO) {
+    private void logicaSetup(Pais p) {
+        if (p.conteudo != Conteudo.VAZIO) {
             JOptionPane.showMessageDialog(this, "Já tem algo aqui!");
             return;
         }
         if (itensColocados < 3) {
-            c.conteudo = Conteudo.ARMADILHA;
+            p.conteudo = Conteudo.ARMADILHA;
         } else if (itensColocados == 3) {
-            c.conteudo = Conteudo.DONO;
+            p.conteudo = Conteudo.DONO;
         } else if (itensColocados == 4) {
-            c.conteudo = Conteudo.PREMIO;
+            p.conteudo = Conteudo.PREMIO;
         }
         itensColocados++;
         atualizarTabuleiro(turnoCachorro ? mapaCachorro : mapaGato, true);
@@ -287,24 +298,23 @@ public class JanelaDoJogo extends JFrame {
         atualizarTabuleiro(alvo, false);
     }
 
-    // CORRIGIDO: Recebe Pais c
-    private void logicaAtaque(Pais c) {
-        c.revelado = true;
-        switch (c.conteudo) {
+    private void logicaAtaque(Pais p) {
+        p.revelado = true;
+        switch (p.conteudo) {
             case VAZIO: 
-                JOptionPane.showMessageDialog(this, "Nada em " + c.nome + "..."); 
+                JOptionPane.showMessageDialog(this, "Nada em " + p.nome + "..."); 
                 break;
             case ARMADILHA:
-                JOptionPane.showMessageDialog(this, "Problema na alfândega em " + c.nome + "!\nPerdeu 1 vida.", "Armadilha!", JOptionPane.INFORMATION_MESSAGE, iconPeixePodre);
+                JOptionPane.showMessageDialog(this, "Problema na alfândega em " + p.nome + "!\nPerdeu 1 vida.", "Armadilha!", JOptionPane.INFORMATION_MESSAGE, iconPeixePodre);
                 if (turnoCachorro) vidasCachorro--; else vidasGato--;
                 break;
             case DONO:
-                JOptionPane.showMessageDialog(this, "OPS! Encontrou o dono em " + c.nome + "!\nFim da viagem para você!");
+                JOptionPane.showMessageDialog(this, "OPS! Encontrou o dono em " + p.nome + "!\nFim da viagem para você!");
                 gameOver(!turnoCachorro);
                 return;
             case PREMIO:
                 ImageIcon iconeVitoria = turnoCachorro ? iconOsso : null; 
-                JOptionPane.showMessageDialog(this, "VITÓRIA! Achou o item em " + c.nome + "!", "Achou!", JOptionPane.INFORMATION_MESSAGE, iconeVitoria);
+                JOptionPane.showMessageDialog(this, "VITÓRIA! Achou o item em " + p.nome + "!", "Achou!", JOptionPane.INFORMATION_MESSAGE, iconeVitoria);
                 gameOver(turnoCachorro);
                 return;
         }
